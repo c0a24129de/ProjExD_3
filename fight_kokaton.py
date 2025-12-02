@@ -167,9 +167,9 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-      # bomb = Bomb((255, 0, 0), 10)
+    # bomb = Bomb((255, 0, 0), 10)
     bombs = [Bomb((255,0,0),10) for _ in range(NUM_OF_BOMBS)]
-    beam = None  # ゲーム初期化時にはビームは存在しない
+    beam_lst = []
     score = Score()
     clock = pg.time.Clock()
     tmr = 0
@@ -177,9 +177,8 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)            
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE: 
+                beam_lst.append(Beam(bird))          
         screen.blit(bg_img, [0, 0])
         
         for b,bomb in enumerate(bombs):
@@ -192,23 +191,33 @@ def main():
                 pg.display.update()
                 time.sleep(1)
                 return
-        
+
         for b,bomb in enumerate(bombs):
-            if beam is not None:
+            if bomb is None:
+                continue
+
+            for i,beam in enumerate(beam_lst):
+                if beam is None:
+                    continue
+
                 if beam.rct.colliderect(bomb.rct):
-                    # ビームが爆弾に当たったら、爆弾とビームを消す
-                    beam = None
                     bombs[b] = None
-                    bird.change_img(6, screen)
+                    beam_lst[i] = None
+                    bird.change_img(6,screen)
                     score.score += 1
                     pg.display.update()
+                    break
         bombs = [bomb for bomb in bombs if bomb is not None]
+        beam_lst = [beam for beam in beam_lst if beam is not None]
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
-        if beam is not None:  # ビームが存在していたら
-            beam.update(screen)   
-        for bomb in bombs:  # 爆弾が存在していたら
+        for i,beam in enumerate(beam_lst):
+            if not check_bound(beam.rct) == (True,True):
+                beam_lst[i] = None
+            else:
+                beam.update(screen)   
+        for bomb in bombs:  
             bomb.update(screen)
         score.update(screen)
         pg.display.update()
