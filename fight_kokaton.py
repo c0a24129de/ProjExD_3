@@ -207,6 +207,7 @@ def main():
                     score.score += 1
                     pg.display.update()
                     break
+                
         bombs = [bomb for bomb in bombs if bomb is not None]
         beam_lst = [beam for beam in beam_lst if beam is not None]
 
